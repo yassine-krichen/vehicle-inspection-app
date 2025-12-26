@@ -39,7 +39,23 @@ export default function RootLayout({
     <html lang="en">
       <body className={`font-sans antialiased`}>
         {children}
-        <Toaster position="top-center" richColors />
+        <Toaster 
+          position="top-center" 
+          richColors 
+          toastOptions={{
+            style: {
+              padding: '16px 20px',
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '0.025em',
+              textAlign: 'center',
+              borderRadius: '12px',
+              border: 'none',
+              boxShadow: '0 10px 40px -10px rgba(0, 0, 0, 0.2)',
+            },
+            className: 'font-bold uppercase tracking-tight',
+          }}
+        />
         <Analytics />
       </body>
     </html>

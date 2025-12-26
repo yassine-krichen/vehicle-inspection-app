@@ -1,40 +1,46 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Share2, Check } from "lucide-react"
-import { toast } from "sonner"
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Share2, Globe } from "lucide-react"
+import { ShareModal } from "@/components/share-modal"
 
-export function ShareButton({ reportId }: { reportId: string }) {
-  const [copied, setCopied] = useState(false)
+type ShareButtonProps = {
+  reportId: string
+  shareToken: string
+  isPublished: boolean
+}
 
-  const handleShare = async () => {
-    const url = `${window.location.origin}/protected/reports/${reportId}`
-    
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      toast.success("Report link copied to clipboard!")
-      
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      toast.error("Failed to copy link")
-    }
-  }
+export function ShareButton({ reportId, shareToken, isPublished }: ShareButtonProps) {
+  const [open, setOpen] = useState(false)
 
   return (
-    <Button variant="outline" className="bg-white" onClick={handleShare}>
-      {copied ? (
-        <>
-          <Check className="mr-2 h-4 w-4" />
-          Copied!
-        </>
-      ) : (
-        <>
-          <Share2 className="mr-2 h-4 w-4" />
-          Share Report
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        variant={isPublished ? "default" : "outline"}
+        className={isPublished ? "bg-green-600 hover:bg-green-700" : "bg-white"}
+        onClick={() => setOpen(true)}
+      >
+        {isPublished ? (
+          <>
+            <Globe className="mr-2 h-4 w-4" />
+            Public Link Active
+          </>
+        ) : (
+          <>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share Report
+          </>
+        )}
+      </Button>
+
+      <ShareModal
+        open={open}
+        onOpenChange={setOpen}
+        inspectionId={reportId}
+        shareToken={shareToken}
+        isPublished={isPublished}
+      />
+    </>
   )
 }
