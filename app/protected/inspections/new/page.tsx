@@ -151,7 +151,7 @@ function InspectionForm() {
         toast.error(res.error || `Failed to ${status === "draft" ? "save draft" : "finalize inspection"}`)
       }
     } catch (err) {
-      console.error("[v0] Error saving inspection:", err)
+      console.error("Error saving inspection:", err)
       toast.error(`Failed to ${status === "draft" ? "save draft" : "finalize inspection"}`)
     } finally {
       setIsSubmitting(false)

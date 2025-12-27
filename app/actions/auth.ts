@@ -44,7 +44,7 @@ export async function loginWithPassword(formData: FormData) {
 
     return { success: true }
   } catch (error) {
-    console.error("[v0] Login error:", error)
+    console.error("Login error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -78,7 +78,7 @@ export async function signupWithPassword(formData: FormData) {
 
     return { success: true }
   } catch (error) {
-    console.error("[v0] Signup error:", error)
+    console.error("Signup error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -108,7 +108,7 @@ export async function loginWithMagicLink(formData: FormData) {
 
     return { success: true }
   } catch (error) {
-    console.error("[v0] Magic link error:", error)
+    console.error("Magic link error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
@@ -125,7 +125,7 @@ export async function logout() {
 
     return { success: true }
   } catch (error) {
-    console.error("[v0] Logout error:", error)
+    console.error("Logout error:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }

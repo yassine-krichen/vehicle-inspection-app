@@ -25,6 +25,7 @@ import {
 import { Copy, RefreshCw, Check, Globe, Lock, ExternalLink } from "lucide-react"
 import { toast } from "sonner"
 import { togglePublishStatus, rotateShareToken } from "@/app/actions/share"
+import { getPublicReportUrl } from "@/lib/url-utils"
 
 type ShareModalProps = {
   open: boolean
@@ -41,7 +42,7 @@ export function ShareModal({ open, onOpenChange, inspectionId, shareToken, isPub
   const [copied, setCopied] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
 
-  const publicUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/view/${shareToken}`
+  const publicUrl = getPublicReportUrl(shareToken)
 
   const handleTogglePublish = async (checked: boolean) => {
     setIsToggling(true)

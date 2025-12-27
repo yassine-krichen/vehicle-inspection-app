@@ -46,7 +46,7 @@ export async function createVehicle(formData: z.infer<typeof vehicleSchema>) {
     revalidatePath("/protected/clients")
     return { success: true, data }
   } catch (err) {
-    console.error("[v0] Error creating vehicle:", err)
+    console.error("Error creating vehicle:", err)
     return { success: false, error: "Failed to create vehicle" }
   }
 }

@@ -7,10 +7,22 @@ import { getVehicles } from "@/app/actions/vehicles"
 import { AppHeader } from "@/components/app-header"
 import { createClient } from "@/lib/supabase/server"
 
+type Vehicle = {
+  id: string
+  customer_name: string
+  customer_email: string
+  make: string
+  model: string
+  year: number
+  vin?: string
+  license_plate?: string
+  created_at: string
+}
+
 type ClientData = {
   customer_name: string
   customer_email: string
-  vehicles: any[]
+  vehicles: Vehicle[]
 }
 
 export default async function ClientsPage() {

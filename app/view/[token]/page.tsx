@@ -2,6 +2,25 @@ import { getPublicInspection } from "@/app/actions/share"
 import { InspectionReport } from "@/components/inspection-report"
 import { AlertTriangle } from "lucide-react"
 import { PublicPrintButton } from "./print-button"
+import { PRINT_STYLES } from "@/lib/print-styles"
+import type { Metadata } from "next"
+
+export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
+  const { token } = await params
+  const result = await getPublicInspection(token)
+
+  if (result.success && result.data) {
+    const vehicle = result.data.vehicles
+    return {
+      title: `Inspection Report - ${vehicle.year} ${vehicle.make} ${vehicle.model} | Mechanic Pro`,
+      description: `View your vehicle inspection report for ${vehicle.year} ${vehicle.make} ${vehicle.model}`,
+    }
+  }
+  
+  return {
+    title: 'Inspection Report | Mechanic Pro',
+  }
+}
 
 export default async function PublicReportView({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -58,30 +77,7 @@ export default async function PublicReportView({ params }: { params: Promise<{ t
         <InspectionReport inspection={inspection} showInternalNotes={false} />
       </div>
 
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @media print {
-          body { 
-            background-color: white !important; 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .print\\:hidden { display: none !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:border-none { border: none !important; }
-          .print\\:p-0 { padding: 0 !important; }
-          .print\\:bg-white { background-color: white !important; }
-          
-          /* Ensure colors print correctly */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `,
-        }}
-      />
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
     </div>
   )
 }

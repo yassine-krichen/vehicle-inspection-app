@@ -63,7 +63,7 @@ export async function createInspection(
 
     return { success: true, id: inspection.id }
   } catch (err) {
-    console.error("[v0] Error creating inspection:", err)
+    console.error("Error creating inspection:", err)
     return { success: false, error: "Failed to create inspection" }
   }
 }

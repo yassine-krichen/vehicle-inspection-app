@@ -1,6 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check, AlertCircle, Car, Calendar, MapPin, Clipboard } from "lucide-react"
 
+type InspectionResult = {
+  id: string
+  category: string
+  item_name: string
+  status: "green" | "yellow" | "red" | "na"
+  measurement: string | null
+  notes: string | null
+}
+
 type InspectionData = {
   id: string
   created_at: string
@@ -14,14 +23,7 @@ type InspectionData = {
     vin: string | null
     customer_name: string
   }
-  inspection_results: Array<{
-    id: string
-    category: string
-    item_name: string
-    status: string
-    measurement: string | null
-    notes: string | null
-  }>
+  inspection_results: InspectionResult[]
 }
 
 type InspectionReportProps = {
@@ -31,12 +33,12 @@ type InspectionReportProps = {
 
 export function InspectionReport({ inspection, showInternalNotes = false }: InspectionReportProps) {
   const resultsByCategory = inspection.inspection_results.reduce(
-    (acc: any, curr: any) => {
+    (acc: Record<string, InspectionResult[]>, curr: InspectionResult) => {
       if (!acc[curr.category]) acc[curr.category] = []
       acc[curr.category].push(curr)
       return acc
     },
-    {} as Record<string, any[]>,
+    {} as Record<string, InspectionResult[]>,
   )
 
   const getStatusDisplay = (status: string) => {
@@ -64,11 +66,11 @@ export function InspectionReport({ inspection, showInternalNotes = false }: Insp
     }
   }
 
-  const redItems = inspection.inspection_results.filter((i: any) => i.status === "red")
-  const yellowItems = inspection.inspection_results.filter((i: any) => i.status === "yellow")
+  const redItems = inspection.inspection_results.filter((i) => i.status === "red")
+  const yellowItems = inspection.inspection_results.filter((i) => i.status === "yellow")
 
   return (
-    <Card className="border-none shadow-2xl overflow-hidden print:shadow-none print:border-none rounded-3xl">
+    <Card className="border-none shadow-2xl overflow-hidden print:shadow-none print:border-none rounded-3xl py-0">
       <CardHeader className="bg-slate-900 text-white p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b-4 border-primary rounded-t-3xl">
         <div className="space-y-3">
           <div className="flex items-center gap-3">
@@ -99,7 +101,7 @@ export function InspectionReport({ inspection, showInternalNotes = false }: Insp
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {redItems.map((item: any) => (
+              {redItems.map((item) => (
                 <div
                   key={item.id}
                   className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center justify-between"
@@ -169,7 +171,7 @@ export function InspectionReport({ inspection, showInternalNotes = false }: Insp
         </div>
 
         {Object.entries(resultsByCategory).length > 0 ? (
-          Object.entries(resultsByCategory).map(([category, items]: [string, any]) => (
+          Object.entries(resultsByCategory).map(([category, items]: [string, InspectionResult[]]) => (
             <div key={category} className="space-y-6">
               <div className="flex items-center justify-between border-b-4 border-slate-900 pb-3">
                 <h3 className="text-2xl font-black uppercase tracking-tighter italic">{category}</h3>
@@ -178,7 +180,7 @@ export function InspectionReport({ inspection, showInternalNotes = false }: Insp
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-6">
-                {items.map((item: any) => (
+                {items.map((item) => (
                   <div
                     key={item.id}
                     className={`flex items-center justify-between py-4 border-b border-slate-100 group transition-colors px-2 rounded-xl ${

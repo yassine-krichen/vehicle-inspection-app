@@ -6,6 +6,32 @@ import { notFound } from "next/navigation"
 import { PrintButton } from "./print-button"
 import { ShareButton } from "./share-button"
 import { InspectionReport } from "@/components/inspection-report"
+import { PRINT_STYLES } from "@/lib/print-styles"
+import type { Metadata } from "next"
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  
+  const { data: inspection } = await supabase
+    .from("inspections")
+    .select(`
+      *,
+      vehicles (*)
+    `)
+    .eq("id", id)
+    .single()
+
+  if (inspection) {
+    return {
+      title: `Inspection Report - ${inspection.vehicles.year} ${inspection.vehicles.make} ${inspection.vehicles.model} | Mechanic Pro`,
+    }
+  }
+  
+  return {
+    title: 'Inspection Report | Mechanic Pro',
+  }
+}
 
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient()
@@ -49,30 +75,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <InspectionReport inspection={inspection} showInternalNotes={true} />
       </div>
 
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @media print {
-          body { 
-            background-color: white !important; 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          .print\\:hidden { display: none !important; }
-          .print\\:shadow-none { box-shadow: none !important; }
-          .print\\:border-none { border: none !important; }
-          .print\\:p-0 { padding: 0 !important; }
-          .print\\:bg-white { background-color: white !important; }
-          
-          /* Ensure colors print correctly */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `,
-        }}
-      />
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
     </div>
   )
 }

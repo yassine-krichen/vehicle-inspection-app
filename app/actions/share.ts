@@ -2,9 +2,22 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { UUID_REGEX } from "@/lib/constants"
+
+/**
+ * Validates UUID format
+ */
+function isValidUUID(uuid: string): boolean {
+  return UUID_REGEX.test(uuid)
+}
 
 export async function togglePublishStatus(inspectionId: string, status: boolean) {
   try {
+    // Input validation
+    if (!isValidUUID(inspectionId)) {
+      return { success: false, error: "Invalid inspection ID format" }
+    }
+
     const supabase = await createClient()
 
     const {
@@ -33,13 +46,18 @@ export async function togglePublishStatus(inspectionId: string, status: boolean)
     revalidatePath(`/protected/reports/${inspectionId}`)
     return { success: true }
   } catch (err) {
-    console.error("[v0] Error toggling publish status:", err)
+    console.error("Error toggling publish status:", err)
     return { success: false, error: "Failed to update publish status" }
   }
 }
 
 export async function rotateShareToken(inspectionId: string) {
   try {
+    // Input validation
+    if (!isValidUUID(inspectionId)) {
+      return { success: false, error: "Invalid inspection ID format" }
+    }
+
     const supabase = await createClient()
 
     const {
@@ -58,21 +76,29 @@ export async function rotateShareToken(inspectionId: string) {
       return { success: false, error: "Not authorized to modify this inspection" }
     }
 
-    // Generate new UUID by updating with a function call
-    const { data, error } = await supabase.rpc("rotate_share_token", { inspection_id: inspectionId })
+    // Generate new UUID by calling function with user_id for authorization
+    const { data, error } = await supabase.rpc("rotate_share_token", { 
+      inspection_id: inspectionId,
+      requesting_user_id: user.id 
+    })
 
     if (error) return { success: false, error: error.message }
 
     revalidatePath(`/protected/reports/${inspectionId}`)
     return { success: true, newToken: data }
   } catch (err) {
-    console.error("[v0] Error rotating share token:", err)
+    console.error("Error rotating share token:", err)
     return { success: false, error: "Failed to rotate share token" }
   }
 }
 
 export async function getPublicInspection(shareToken: string) {
   try {
+    // Input validation
+    if (!isValidUUID(shareToken)) {
+      return { success: false, error: "Invalid share token format" }
+    }
+
     const supabase = await createClient()
 
     const { data: inspection, error } = await supabase
@@ -94,7 +120,7 @@ export async function getPublicInspection(shareToken: string) {
 
     return { success: true, data: inspection }
   } catch (err) {
-    console.error("[v0] Error fetching public inspection:", err)
+    console.error("Error fetching public inspection:", err)
     return { success: false, error: "Failed to fetch inspection" }
   }
 }

@@ -48,7 +48,7 @@ export default function NewClientPage() {
         toast.error(res.error || "Failed to add client. Please check your entries.")
       }
     } catch (err) {
-      console.error("[v0] Error creating vehicle:", err)
+      console.error("Error creating vehicle:", err)
       toast.error("Failed to add client. Please check your entries.")
     } finally {
       setLoading(false)

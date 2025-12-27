@@ -38,7 +38,7 @@ export function AppHeader({ title, showBackButton, backHref = "/", action, userE
         toast.error(result.error || "Failed to logout")
       }
     } catch (err) {
-      console.error("[v0] Logout error:", err)
+      console.error("Logout error:", err)
       toast.error("Failed to logout")
     }
   }
