@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ClipboardList, ChevronRight, Car, Calendar, User } from "lucide-react"
+import { ClipboardList, ChevronRight, Car, Calendar, User, FileEdit } from "lucide-react"
 import Link from "next/link"
 import { AppHeader } from "@/components/app-header"
 
@@ -62,8 +62,19 @@ export default async function ReportsListPage() {
                 <Card className="group hover:shadow-md transition-shadow cursor-pointer border-none shadow-sm">
                   <CardContent className="p-6 space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="bg-primary/10 p-3 rounded-xl text-primary">
-                        <Car className="h-6 w-6" />
+                      <div className="flex items-center gap-2">
+                        <div className="bg-primary/10 p-3 rounded-xl text-primary">
+                          <Car className="h-6 w-6" />
+                        </div>
+                        <span
+                          className={`text-[10px] px-2 py-1 rounded-md font-black uppercase tracking-wider ${
+                            report.status === "completed"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
+                        >
+                          {report.status}
+                        </span>
                       </div>
                       <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-primary transition-colors" />
                     </div>
