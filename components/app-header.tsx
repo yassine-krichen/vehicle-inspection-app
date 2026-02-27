@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Link from "next/link"
-import { Wrench, LogOut, LayoutDashboard, User } from "lucide-react"
+import { Wrench, LogOut, LayoutDashboard, User, FileText } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,6 +92,15 @@ export function AppHeader({ title, showBackButton, backHref = "/", action, userE
                   <Link href="/">
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span className="font-bold text-sm">Dashboard</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className="rounded-lg cursor-pointer focus:bg-slate-50 focus:text-primary py-2 px-3"
+                >
+                  <Link href="/protected/invoices">
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span className="font-bold text-sm">Invoices</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-slate-100 mx-1 my-1" />

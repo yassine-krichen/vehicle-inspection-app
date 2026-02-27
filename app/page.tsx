@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusCircle, ClipboardList, Users, Car, ChevronRight, AlertTriangle } from "lucide-react"
+import { PlusCircle, ClipboardList, Users, Car, ChevronRight, AlertTriangle, FileText } from "lucide-react"
 import { getRecentInspections } from "@/app/actions/inspections"
 import { createClient } from "@/lib/supabase/server"
 import { AppHeader } from "@/components/app-header"
@@ -174,6 +174,23 @@ export default async function Dashboard() {
                     <div className="font-bold text-lg">Report History</div>
                     <div className="text-xs text-slate-400 font-bold uppercase tracking-tight">
                       Review Past Inspections
+                    </div>
+                  </div>
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-24 justify-start px-6 gap-4 border-none shadow-sm hover:bg-primary/5 bg-white rounded-2xl group"
+              >
+                <Link href="/protected/invoices">
+                  <div className="bg-slate-100 p-3 rounded-xl group-hover:bg-primary group-hover:text-white transition-all">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div className="text-left">
+                    <div className="font-bold text-lg">Invoices</div>
+                    <div className="text-xs text-slate-400 font-bold uppercase tracking-tight">
+                      Manage & Print Invoices
                     </div>
                   </div>
                 </Link>
