@@ -12,7 +12,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
   DropdownMenu,
@@ -22,19 +21,46 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Trash2, Loader2, Send, CheckCircle2, ChevronDown, RotateCcw } from "lucide-react"
+import { MoreHorizontal, Download, Printer, Send, CheckCircle2, RotateCcw, Trash2 } from "lucide-react"
 import { deleteInvoice, updateInvoiceStatus } from "@/app/actions/invoices"
+import { generateInvoicePDF } from "@/lib/pdf"
 import { toast } from "sonner"
 
 interface InvoiceActionsProps {
   invoiceId: string
   status: string
+  invoice: {
+    id: string
+    invoice_number: string
+    created_at: string
+    customer_name: string
+    customer_email: string | null
+    vehicle_info: string | null
+    subtotal: number
+    tax_rate: number
+    tax_amount: number
+    total: number
+    notes: string | null
+    status: string
+    sections: {
+      id: string
+      title: string
+      invoice_items: {
+        id: string
+        description: string
+        quantity: number
+        unit_price: number
+        amount: number
+      }[]
+    }[]
+  }
 }
 
-export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
+export function InvoiceActions({ invoiceId, status, invoice }: InvoiceActionsProps) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   const handleDelete = async () => {
     try {
@@ -77,28 +103,45 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Status transition dropdown */}
+    <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" disabled={isUpdating}>
-            {isUpdating ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <ChevronDown className="mr-2 h-4 w-4" />
-            )}
-            Update Status
+          <Button variant="outline" size="icon" className="h-9 w-9 rounded-xl">
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">Actions</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-xl border-none p-2">
+        <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-xl border-none p-2">
           <DropdownMenuLabel className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400 px-3 py-2">
-            Set Status
+            Actions
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            onSelect={() => generateInvoicePDF(invoice)}
+            className="rounded-lg cursor-pointer py-2.5 px-3"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            <span className="font-bold text-sm">Download PDF</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() => window.print()}
+            className="rounded-lg cursor-pointer py-2.5 px-3"
+          >
+            <Printer className="mr-2 h-4 w-4" />
+            <span className="font-bold text-sm">Print Invoice</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuLabel className="font-black uppercase text-[10px] tracking-[0.2em] text-slate-400 px-3 py-2">
+            Status
+          </DropdownMenuLabel>
           {status !== "draft" && (
             <DropdownMenuItem
-              onClick={() => handleStatusUpdate("draft")}
-              className="rounded-lg cursor-pointer py-2 px-3"
+              onSelect={() => handleStatusUpdate("draft")}
+              disabled={isUpdating}
+              className="rounded-lg cursor-pointer py-2.5 px-3"
             >
               <RotateCcw className="mr-2 h-4 w-4 text-yellow-600" />
               <span className="font-bold text-sm">Back to Draft</span>
@@ -106,8 +149,9 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
           )}
           {status !== "sent" && (
             <DropdownMenuItem
-              onClick={() => handleStatusUpdate("sent")}
-              className="rounded-lg cursor-pointer py-2 px-3"
+              onSelect={() => handleStatusUpdate("sent")}
+              disabled={isUpdating}
+              className="rounded-lg cursor-pointer py-2.5 px-3"
             >
               <Send className="mr-2 h-4 w-4 text-blue-600" />
               <span className="font-bold text-sm">Mark as Sent</span>
@@ -115,33 +159,28 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
           )}
           {status !== "paid" && (
             <DropdownMenuItem
-              onClick={() => handleStatusUpdate("paid")}
-              className="rounded-lg cursor-pointer py-2 px-3"
+              onSelect={() => handleStatusUpdate("paid")}
+              disabled={isUpdating}
+              className="rounded-lg cursor-pointer py-2.5 px-3"
             >
               <CheckCircle2 className="mr-2 h-4 w-4 text-green-600" />
               <span className="font-bold text-sm">Mark as Paid</span>
             </DropdownMenuItem>
           )}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => setDeleteOpen(true)}
+            className="rounded-lg cursor-pointer py-2.5 px-3 text-red-600 focus:text-red-600 focus:bg-red-50"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            <span className="font-bold text-sm">Delete</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Delete button */}
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={isDeleting}
-            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-          >
-            {isDeleting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-2 h-4 w-4" />
-            )}
-            Delete
-          </Button>
-        </AlertDialogTrigger>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-black uppercase tracking-tight text-red-600">
@@ -155,13 +194,14 @@ export function InvoiceActions({ invoiceId, status }: InvoiceActionsProps) {
             <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 rounded-xl"
             >
-              Yes, Delete
+              {isDeleting ? "Deleting..." : "Yes, Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   )
 }

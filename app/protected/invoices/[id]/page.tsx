@@ -5,8 +5,6 @@ import { ChevronLeft, FileText, Calendar, DollarSign, Car, User, Clipboard } fro
 import Link from "next/link"
 import { getInvoice } from "@/app/actions/invoices"
 import { InvoiceActions } from "./invoice-actions"
-import { InvoicePrintButton } from "./print-button"
-import { DownloadInvoicePDF } from "./download-pdf"
 import type { Metadata } from "next"
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -44,25 +42,19 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 print:p-0 print:bg-white">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header - Hidden on Print */}
-        <div className="flex flex-col gap-4 print:hidden">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" asChild className="font-bold uppercase tracking-wider">
-              <Link href="/protected/invoices">
-                <ChevronLeft className="mr-2 h-4 w-4" /> All Invoices
-              </Link>
-            </Button>
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-wider ${status.className}`}
-              >
-                {status.label}
-              </span>
-              <DownloadInvoicePDF invoice={invoice} />
-              <InvoicePrintButton />
-            </div>
-          </div>
-          <div className="flex items-center justify-end">
-            <InvoiceActions invoiceId={id} status={invoice.status} />
+        <div className="flex items-center justify-between print:hidden">
+          <Button variant="ghost" asChild className="font-bold uppercase tracking-wider">
+            <Link href="/protected/invoices">
+              <ChevronLeft className="mr-2 h-4 w-4" /> All Invoices
+            </Link>
+          </Button>
+          <div className="flex items-center gap-3">
+            <span
+              className={`text-[10px] px-3 py-1.5 rounded-lg font-black uppercase tracking-wider ${status.className}`}
+            >
+              {status.label}
+            </span>
+            <InvoiceActions invoiceId={id} status={invoice.status} invoice={invoice} />
           </div>
         </div>
 
