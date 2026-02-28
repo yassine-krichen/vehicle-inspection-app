@@ -2,6 +2,7 @@ import { getPublicInspection } from "@/app/actions/share"
 import { InspectionReport } from "@/components/inspection-report"
 import { AlertTriangle } from "lucide-react"
 import { PublicPrintButton } from "./print-button"
+import { PublicDownloadPDF } from "./download-pdf"
 import { PRINT_STYLES } from "@/lib/print-styles"
 import type { Metadata } from "next"
 
@@ -70,7 +71,10 @@ export default async function PublicReportView({ params }: { params: Promise<{ t
               <p className="text-xs text-muted-foreground">Shared by your mechanic</p>
             </div>
           </div>
-          <PublicPrintButton />
+          <div className="flex items-center gap-2">
+            <PublicDownloadPDF inspection={inspection} />
+            <PublicPrintButton />
+          </div>
         </div>
 
         {/* Report Content */}

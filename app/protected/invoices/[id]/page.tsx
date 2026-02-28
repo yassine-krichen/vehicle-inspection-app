@@ -6,6 +6,7 @@ import Link from "next/link"
 import { getInvoice } from "@/app/actions/invoices"
 import { InvoiceActions } from "./invoice-actions"
 import { InvoicePrintButton } from "./print-button"
+import { DownloadInvoicePDF } from "./download-pdf"
 import type { Metadata } from "next"
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -56,6 +57,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               >
                 {status.label}
               </span>
+              <DownloadInvoicePDF invoice={invoice} />
               <InvoicePrintButton />
             </div>
           </div>

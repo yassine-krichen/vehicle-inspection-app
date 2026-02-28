@@ -6,6 +6,7 @@ import { notFound } from "next/navigation"
 import { PrintButton } from "./print-button"
 import { ShareButton } from "./share-button"
 import { ReportActions } from "./report-actions"
+import { DownloadInspectionPDF } from "./download-pdf"
 import { InspectionReport } from "@/components/inspection-report"
 import { PRINT_STYLES } from "@/lib/print-styles"
 import type { Metadata } from "next"
@@ -79,6 +80,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                 shareToken={inspection.share_token}
                 isPublished={inspection.is_published || false}
               />
+              <DownloadInspectionPDF inspection={inspection} />
               <PrintButton />
             </div>
           </div>
