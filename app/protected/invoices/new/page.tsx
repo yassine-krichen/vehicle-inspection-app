@@ -1,12 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Plus,
   Trash2,
@@ -17,6 +24,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { createInvoice, type InvoiceSection, type InvoiceItem } from "@/app/actions/invoices"
+import { getVehicles } from "@/app/actions/vehicles"
 import { toast } from "sonner"
 import { AppHeader } from "@/components/app-header"
 
@@ -39,9 +47,28 @@ interface LocalItem {
   sort_order: number
 }
 
+interface Vehicle {
+  id: string
+  customer_name: string
+  customer_email: string
+  make: string
+  model: string
+  year: number
+  vin: string | null
+  license_plate: string | null
+}
+
 export default function NewInvoicePage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Vehicles data
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [isLoadingVehicles, setIsLoadingVehicles] = useState(true)
+
+  // Client & vehicle selection
+  const [selectedClient, setSelectedClient] = useState("")
+  const [selectedVehicleId, setSelectedVehicleId] = useState("")
 
   // Customer info
   const [customerName, setCustomerName] = useState("")
@@ -49,6 +76,56 @@ export default function NewInvoicePage() {
   const [vehicleInfo, setVehicleInfo] = useState("")
   const [notes, setNotes] = useState("")
   const [taxRate, setTaxRate] = useState("0")
+
+  // Load vehicles on mount
+  const loadVehicles = useCallback(async () => {
+    try {
+      const data = await getVehicles()
+      setVehicles(data as Vehicle[])
+    } catch (err) {
+      console.error("Failed to load vehicles:", err)
+    } finally {
+      setIsLoadingVehicles(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadVehicles()
+  }, [loadVehicles])
+
+  // Derive unique clients from vehicles
+  const clients = vehicles.reduce<{ name: string; email: string }[]>((acc, v) => {
+    const key = v.customer_email || v.customer_name
+    if (!acc.find((c) => (c.email || c.name) === key)) {
+      acc.push({ name: v.customer_name, email: v.customer_email })
+    }
+    return acc
+  }, [])
+
+  // Vehicles for the selected client
+  const clientVehicles = selectedClient
+    ? vehicles.filter((v) => (v.customer_email || v.customer_name) === selectedClient)
+    : []
+
+  const handleClientChange = (clientKey: string) => {
+    setSelectedClient(clientKey)
+    setSelectedVehicleId("")
+    setVehicleInfo("")
+
+    const client = clients.find((c) => (c.email || c.name) === clientKey)
+    if (client) {
+      setCustomerName(client.name)
+      setCustomerEmail(client.email || "")
+    }
+  }
+
+  const handleVehicleChange = (vehicleId: string) => {
+    setSelectedVehicleId(vehicleId)
+    const vehicle = vehicles.find((v) => v.id === vehicleId)
+    if (vehicle) {
+      setVehicleInfo(`${vehicle.year} ${vehicle.make} ${vehicle.model}`)
+    }
+  }
 
   // Dynamic sections
   const [sections, setSections] = useState<LocalSection[]>([
@@ -251,45 +328,86 @@ export default function NewInvoicePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Client & Vehicle Dropdowns */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="customer-name" className="font-bold">
-                  Customer Name <span className="text-red-500">*</span>
+                <Label className="font-bold">
+                  Select Client <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="customer-name"
-                  placeholder="John Doe"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  className="bg-white"
-                />
+                <Select value={selectedClient} onValueChange={handleClientChange} disabled={isLoadingVehicles}>
+                  <SelectTrigger className="w-full bg-white h-10">
+                    <SelectValue placeholder={isLoadingVehicles ? "Loading clients..." : "Choose a client"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => {
+                      const key = client.email || client.name
+                      return (
+                        <SelectItem key={key} value={key}>
+                          <span className="font-bold">{client.name}</span>
+                          {client.email && (
+                            <span className="ml-2 text-slate-400 text-xs">{client.email}</span>
+                          )}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customer-email" className="font-bold">
-                  Customer Email
-                </Label>
-                <Input
-                  id="customer-email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={customerEmail}
-                  onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="bg-white"
-                />
+                <Label className="font-bold">Select Vehicle</Label>
+                <Select
+                  value={selectedVehicleId}
+                  onValueChange={handleVehicleChange}
+                  disabled={!selectedClient || clientVehicles.length === 0}
+                >
+                  <SelectTrigger className="w-full bg-white h-10">
+                    <SelectValue
+                      placeholder={
+                        !selectedClient
+                          ? "Select a client first"
+                          : clientVehicles.length === 0
+                            ? "No vehicles found"
+                            : "Choose a vehicle"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clientVehicles.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        <span className="font-bold">
+                          {v.year} {v.make} {v.model}
+                        </span>
+                        {v.license_plate && (
+                          <span className="ml-2 text-slate-400 text-xs">({v.license_plate})</span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="vehicle-info" className="font-bold">
-                Vehicle
-              </Label>
-              <Input
-                id="vehicle-info"
-                placeholder="e.g. 2022 BMW 330i"
-                value={vehicleInfo}
-                onChange={(e) => setVehicleInfo(e.target.value)}
-                className="bg-white"
-              />
-            </div>
+
+            {/* Auto-filled fields (read-only display) */}
+            {selectedClient && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Customer</span>
+                  <p className="font-bold text-sm text-slate-800">{customerName}</p>
+                </div>
+                {customerEmail && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email</span>
+                    <p className="font-bold text-sm text-slate-800">{customerEmail}</p>
+                  </div>
+                )}
+                {vehicleInfo && (
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vehicle</span>
+                    <p className="font-bold text-sm text-slate-800">{vehicleInfo}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
